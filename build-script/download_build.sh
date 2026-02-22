@@ -11,24 +11,12 @@ KERNEL_VERSION="6.12.47"
 case $KERNEL_VERSION in
     "6.12.47")
       KERNEL_COMMIT="6d1da66a7b1358c9cd324286239f37203b7ce25c"
-      SOURCE_SET="6.12.y"
+      SOURCE_SET="6.12.47"
       ;;
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC_BASE="${SCRIPT_DIR}/../source_files/${SOURCE_SET}"
-
-# ---- Kconfig fragment ----
-KCONFIG_FRAGMENT='config DRM_PANEL_DSI_MT
-\ttristate "MOTIVO touchscreen panel"
-\tdepends on OF
-\tdepends on DRM_MIPI_DSI
-\tdepends on BACKLIGHT_CLASS_DEVICE
-\thelp
-\t  Say Y here if you want to enable support for the MOTIVO DSI
-\t  LCD modules. The panel has a 800x1280 resolution and uses
-\t  24 bit RGB per pixel. It provides a 4-lane MIPI DSI interface
-\t  to the host and has a built-in LED backlight.'
 
 echo "!!!  Build modules for kernel ${KERNEL_VERSION}  !!!"
 echo "!!!  Source set: ${SOURCE_SET}  !!!"
@@ -58,10 +46,12 @@ OVERLAY_DIR="${TREE}/arch/arm/boot/dts/overlays"
 echo "  -> panel-dsi-mt.c"
 cp ${SRC_BASE}/panel/panel-dsi-mt.c "${PANEL_DIR}/"
 
-# Kconfig (insert before endmenu if not present)
+# Kconfig (insert fragment before endmenu if not present)
 if ! grep -q "DRM_PANEL_DSI_MT" "${PANEL_DIR}/Kconfig"; then
     echo "  -> Kconfig entry"
-    sed -i "/^endmenu$/i\\${KCONFIG_FRAGMENT}\n" "${PANEL_DIR}/Kconfig"
+    sed -i '/^endmenu$/d' "${PANEL_DIR}/Kconfig"
+    cat "${SRC_BASE}/panel/Kconfig.inject" >> "${PANEL_DIR}/Kconfig"
+    echo "endmenu" >> "${PANEL_DIR}/Kconfig"
 fi
 
 # Makefile (append if not present)
