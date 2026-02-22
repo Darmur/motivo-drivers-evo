@@ -1,0 +1,169 @@
+/*
+ * Device Tree overlay for MOTIVO Panel type B Multitouch 8" Display
+ *
+ * Supports DSI1 (default) or DSI0 via dsi0 parameter
+ * Supports I2C6 (default, Motivo hardware) or alternative buses via i2c0/i2c1/i2c3
+ * Supports rotation via rotation parameter (default 270)
+ *
+ * Usage examples:
+ *   dtoverlay=motivo-panel-b                         (DSI1, i2c6, rotation 270)
+ *   dtoverlay=motivo-panel-b,rotation=0              (DSI1, i2c6, rotation 0)
+ *   dtoverlay=motivo-panel-b,rotation=180            (DSI1, i2c6, rotation 180)
+ *   dtoverlay=motivo-panel-b,dsi0                    (DSI0, i2c6, rotation 270)
+ *   dtoverlay=motivo-panel-b,i2c1                    (DSI1, i2c1, rotation 270)
+ *   dtoverlay=motivo-panel-b,dsi0,i2c0               (DSI0, i2c0, rotation 270)
+ *
+ * Note: When using non-default I2C bus, pin configuration may require
+ *       adjustment based on carrier board design.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2835";
+
+    /* DSI port fragment - default target is dsi1 */
+    dsi_frag: fragment@0 {
+        target = <&dsi1>;
+
+        __overlay__ {
+            status = "okay";
+
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            port {
+                dsi1_out_port: endpoint {
+                    remote-endpoint = <&panel_dsi_in1>;
+                };
+            };
+
+            panel: display1: panel@0 {
+                compatible = "motivo,mt1280800b";
+                reg = <0>;
+                label = "MOTIVO Panel type B Multitouch 8\" Display";
+                rotation = <270>;
+                backlight = <&rpi_backlight>;
+                reset-gpios = <&gpio 20 0>;
+                port {
+                    panel_dsi_in1: endpoint {
+                        remote-endpoint = <&dsi1_out_port>;
+                    };
+                };
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&gpio>;
+        __overlay__ {
+            pwm_pins: pwm_pins {
+                brcm,pins = <12>;
+                brcm,function = <4>; // ALT0
+            };
+        };
+    };
+
+    fragment@2 {
+        target = <&pwm>;
+        frag1: __overlay__ {
+            pinctrl-names = "default";
+            pinctrl-0 = <&pwm_pins>;
+            assigned-clock-rates = <1000000>;
+            status = "okay";
+        };
+    };
+
+    fragment@3 {
+        target-path = "/";
+        __overlay__ {
+            rpi_backlight: rpi_backlight {
+                compatible = "pwm-backlight";
+                brightness-levels = <0 6 8 12 16 24 32 40 48 64 96 128 160 192 224 255>;
+                default-brightness-level = <6>;
+                pwms = <&pwm 0 200000 0>;
+                power-supply = <&vdd_3v3_reg>;
+                status = "okay";
+            };
+        };
+    };
+
+    /* I2C bus status fragment - default target is i2c6 */
+    i2c_frag: fragment@4 {
+        target = <&i2c6>;
+        __overlay__ {
+            status = "okay";
+            pinctrl-names = "default";
+            pinctrl-0 = <&i2c6_pins>;
+            clock-frequency = <400000>;
+        };
+    };
+
+    fragment@5 {
+        target = <&i2c6_pins>;
+        __dormant__ {
+            brcm,pins = <0 1>;
+        };
+    };
+
+    fragment@6 {
+        target = <&i2c6_pins>;
+        __overlay__ {
+            brcm,pins = <22 23>;
+        };
+    };
+
+    fragment@7 {
+        target = <&gpio>;
+        __overlay__ {
+            goodix_pins: goodix_pins {
+                brcm,pins = <27 26>; // interrupt and reset
+                brcm,function = <0 0>; // in
+                brcm,pull = <2 2>; // pull-up
+            };
+        };
+    };
+
+    /* I2C touch controller fragment - default target is i2c6 */
+    i2c_touch_frag: fragment@8 {
+        target = <&i2c6>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            gt9xx: gt9xx@5d {
+                compatible = "goodix,gt911";
+                reg = <0x5D>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&goodix_pins>;
+                interrupt-parent = <&gpio>;
+                interrupts = <27 2>; // high-to-low edge triggered
+                irq-gpios = <&gpio 27 0>;
+                reset-gpios = <&gpio 26 0>;
+                touchscreen-size-x = <800>;
+                touchscreen-size-y = <1280>;
+                touchscreen-inverted-x;
+                touchscreen-swapped-x-y;
+            };
+        };
+    };
+
+    __overrides__ {
+        /* Display rotation: 0, 90, 180, 270 (default 270) */
+        rotation = <&panel>, "rotation:0";
+
+        /* Use DSI0 instead of DSI1 */
+        dsi0 = <&dsi_frag>, "target:0=", <&dsi0>;
+
+        /* Alternative I2C buses for non-Motivo hardware */
+        /* Note: Pin configuration may need adjustment */
+        i2c0 = <&i2c_frag>, "target:0=", <&i2c0>,
+               <&i2c_touch_frag>, "target:0=", <&i2c0>;
+        i2c1 = <&i2c_frag>, "target:0=", <&i2c1>,
+               <&i2c_touch_frag>, "target:0=", <&i2c1>;
+        i2c3 = <&i2c_frag>, "target:0=", <&i2c3>,
+               <&i2c_touch_frag>, "target:0=", <&i2c3>;
+    };
+};
