@@ -4,7 +4,7 @@ CPU=8
 KERNEL_VERSION="6.12.47"
 
 case $KERNEL_VERSION in
-    "6.12.47") SOURCE_SET="6.12.y" ;;
+    "6.12.47") SOURCE_SET="6.12.47" ;;
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
