@@ -6,6 +6,7 @@ KERNEL_VERSION="6.12.74"
 case $KERNEL_VERSION in
     "6.12.74") SOURCE_SET="6.12.74" ;;
     "6.12.47") SOURCE_SET="6.12.47" ;;
+    "6.6.62") SOURCE_SET="6.6.62" ;;
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

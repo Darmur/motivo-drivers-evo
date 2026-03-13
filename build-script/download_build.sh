@@ -17,6 +17,10 @@ case $KERNEL_VERSION in
       KERNEL_COMMIT="6d1da66a7b1358c9cd324286239f37203b7ce25c"
       SOURCE_SET="6.12.47"
       ;;
+    "6.6.62")
+      KERNEL_COMMIT="9a9bda382acec723c901e5ae7c7f415d9afbf635"
+      SOURCE_SET="6.6.62"
+      ;;
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
