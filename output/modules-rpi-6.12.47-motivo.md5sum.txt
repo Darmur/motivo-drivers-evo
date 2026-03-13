@@ -1,0 +1,1 @@
+70026e9048c4cf5aa193e2a45a9ce635  modules-rpi-6.12.47-motivo.tar.gz
