@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CPU=8
-KERNEL_VERSION="6.12.74"
+KERNEL_VERSION="6.12.75"
 
 # ---- Version configuration ----
 # SOURCE_SET: source_files subdirectory (shared across point releases)
@@ -9,6 +9,10 @@ KERNEL_VERSION="6.12.74"
 # When 6.18 arrives, create source_files/6.18.y/ and add a new case entry.
 
 case $KERNEL_VERSION in
+    "6.12.75")
+      KERNEL_COMMIT="98655d3ccedba33aeadd0e550229f1496c5bf6f9"
+      SOURCE_SET="6.12.75"
+      ;;
     "6.12.74")
       KERNEL_COMMIT="7a35bddc777d8992bdfe42f8e3d043582df2f5f8"
       SOURCE_SET="6.12.74"
