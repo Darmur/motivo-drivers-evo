@@ -1,9 +1,10 @@
 #!/bin/bash
 
 CPU=8
-KERNEL_VERSION="6.12.74"
+KERNEL_VERSION="6.12.75"
 
 case $KERNEL_VERSION in
+    "6.12.75") SOURCE_SET="6.12.75" ;;
     "6.12.74") SOURCE_SET="6.12.74" ;;
     "6.12.47") SOURCE_SET="6.12.47" ;;
     "6.6.62") SOURCE_SET="6.6.62" ;;
